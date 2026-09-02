@@ -4,7 +4,7 @@
 
 ## 下载
 
-打开本项目的 GitHub Releases 页面，在最新版本的 **Assets** 区域下载：
+打开 [GitHub Releases 页面](https://github.com/cliuxinxin/x-inline-block/releases)，在最新版本的 **Assets** 区域下载：
 
 `x-inline-block-v1.0.0.zip`
 
