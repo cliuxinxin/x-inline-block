@@ -38,6 +38,16 @@ test('scan injects one block button after an eligible author name', () => {
   assert.equal(buttons[0].previousElementSibling?.textContent, '@alice');
 });
 
+test('injected control uses an accessible icon-and-label pill', () => {
+  const { article } = makePage();
+  const button = injectBlockButton(article, { currentHandle: '@me' });
+
+  assert.equal(button.getAttribute('aria-label'), '拉黑 @alice');
+  assert.equal(button.dataset.state, 'idle');
+  assert.equal(button.querySelector('svg')?.getAttribute('aria-hidden'), 'true');
+  assert.equal(button.querySelector('.x-inline-block-label')?.textContent, '拉黑');
+});
+
 test('injectBlockButton skips promoted posts', () => {
   const { article } = makePage({ ad: true });
   assert.equal(injectBlockButton(article, { currentHandle: '@me' }), null);
@@ -99,6 +109,7 @@ test('handleBlockClick exposes progress and success states', async () => {
   assert.deepEqual(states, [['处理中…', true]]);
   assert.equal(button.textContent, '已拉黑');
   assert.equal(button.disabled, true);
+  assert.equal(button.dataset.state, 'success');
 });
 
 test('handleBlockClick restores the action after a safe failure', async () => {
@@ -111,6 +122,7 @@ test('handleBlockClick restores the action after a safe failure', async () => {
 
   assert.equal(button.textContent, '拉黑');
   assert.equal(button.disabled, false);
+  assert.equal(button.dataset.state, 'idle');
   assert.match(button.title, /失败.*找不到拉黑菜单项/);
 });
 

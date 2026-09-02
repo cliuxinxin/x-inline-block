@@ -32,10 +32,28 @@
 
     const author = article.querySelector('[data-testid="User-Name"]');
     const button = article.ownerDocument.createElement('button');
+    const handle = getHandle(article);
     button.type = 'button';
     button.className = BUTTON_CLASS;
-    button.textContent = '拉黑';
-    button.title = `拉黑 ${getHandle(article)}`;
+    const svgNamespace = 'http://www.w3.org/2000/svg';
+    const icon = article.ownerDocument.createElementNS(svgNamespace, 'svg');
+    icon.classList.add('x-inline-block-icon');
+    icon.setAttribute('viewBox', '0 0 16 16');
+    icon.setAttribute('aria-hidden', 'true');
+    const circle = article.ownerDocument.createElementNS(svgNamespace, 'circle');
+    circle.setAttribute('cx', '8');
+    circle.setAttribute('cy', '8');
+    circle.setAttribute('r', '5.5');
+    const slash = article.ownerDocument.createElementNS(svgNamespace, 'path');
+    slash.setAttribute('d', 'M4.1 11.9 11.9 4.1');
+    icon.append(circle, slash);
+    const label = article.ownerDocument.createElement('span');
+    label.className = 'x-inline-block-label';
+    label.textContent = '拉黑';
+    button.append(icon, label);
+    button.dataset.state = 'idle';
+    button.setAttribute('aria-label', `拉黑 ${handle}`);
+    button.title = `拉黑 ${handle}`;
     button.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -106,20 +124,27 @@
     if (!handle) return false;
 
     button.disabled = true;
-    button.textContent = '处理中…';
+    setButtonState(button, 'loading', '处理中…');
     button.title = `正在拉黑 ${handle}`;
     try {
       const operation = options.operation || performNativeBlock;
       await operation(article, handle, options);
-      button.textContent = '已拉黑';
+      setButtonState(button, 'success', '已拉黑');
       button.title = `已拉黑 ${handle}`;
       return true;
     } catch (error) {
       button.disabled = false;
-      button.textContent = '拉黑';
+      setButtonState(button, 'idle', '拉黑');
       button.title = `拉黑失败：${error.message}`;
       return false;
     }
+  }
+
+  function setButtonState(button, state, label) {
+    button.dataset.state = state;
+    const labelElement = button.querySelector('.x-inline-block-label');
+    if (labelElement) labelElement.textContent = label;
+    else button.textContent = label;
   }
 
   function scan(root, options = {}) {

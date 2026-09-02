@@ -1,30 +1,99 @@
 .x-inline-block-button {
   all: unset;
+  --xib-secondary: 83, 100, 113;
+  --xib-danger: 244, 33, 46;
+  --xib-success: 0, 145, 95;
+  align-items: center;
   box-sizing: border-box;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
   margin-left: 6px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: rgb(244, 33, 46);
+  padding: 0 8px 0 6px;
+  border: 1px solid rgba(var(--xib-secondary), 0.2);
+  border-radius: 11px;
+  background: rgba(var(--xib-secondary), 0.065);
+  color: rgb(var(--xib-secondary));
   cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 16px;
+  font-family: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
   white-space: nowrap;
+  vertical-align: middle;
+  transition: background-color 140ms ease, border-color 140ms ease,
+    color 140ms ease, opacity 140ms ease, transform 80ms ease;
+  -webkit-font-smoothing: antialiased;
+}
+
+.x-inline-block-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 3px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 1.45;
 }
 
 .x-inline-block-button:hover:not(:disabled),
 .x-inline-block-button:focus-visible:not(:disabled) {
-  background: rgba(244, 33, 46, 0.1);
-  text-decoration: underline;
+  border-color: rgba(var(--xib-danger), 0.32);
+  background: rgba(var(--xib-danger), 0.09);
+  color: rgb(var(--xib-danger));
 }
 
 .x-inline-block-button:focus-visible {
-  outline: 2px solid rgb(244, 33, 46);
-  outline-offset: 1px;
+  outline: 2px solid rgba(29, 155, 240, 0.42);
+  outline-offset: 2px;
+}
+
+.x-inline-block-button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .x-inline-block-button:disabled {
   cursor: default;
-  opacity: 0.65;
+  opacity: 0.7;
+}
+
+.x-inline-block-button[data-state="loading"] .x-inline-block-icon {
+  animation: x-inline-block-spin 0.8s linear infinite;
+}
+
+.x-inline-block-button[data-state="success"] {
+  border-color: rgba(var(--xib-success), 0.24);
+  background: rgba(var(--xib-success), 0.09);
+  color: rgb(var(--xib-success));
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .x-inline-block-button {
+    --xib-secondary: 113, 118, 123;
+    background: rgba(var(--xib-secondary), 0.1);
+  }
+}
+
+html[data-theme="dark"] .x-inline-block-button,
+html[style*="color-scheme: dark"] .x-inline-block-button {
+  --xib-secondary: 113, 118, 123;
+  background: rgba(var(--xib-secondary), 0.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .x-inline-block-button {
+    transition: none;
+  }
+
+  .x-inline-block-button[data-state="loading"] .x-inline-block-icon {
+    animation: none;
+  }
+}
+
+@keyframes x-inline-block-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
