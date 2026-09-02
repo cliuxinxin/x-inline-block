@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "X 一键拉黑",
+  "description": "在 X/Twitter 帖子作者名后添加直接拉黑按钮。",
+  "version": "1.0.0",
+  "permissions": [],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

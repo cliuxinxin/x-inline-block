@@ -128,7 +128,50 @@
     if (root?.querySelectorAll) {
       articles.push(...root.querySelectorAll('article[data-testid="tweet"]'));
     }
-    for (const article of new Set(articles)) injectBlockButton(article, options);
+    const currentHandle = options.currentHandle ?? getCurrentHandle(
+      root?.ownerDocument || root
+    );
+    for (const article of new Set(articles)) {
+      injectBlockButton(article, { ...options, currentHandle });
+    }
+  }
+
+  function getCurrentHandle(documentRef) {
+    const accountSwitcher = documentRef?.querySelector(
+      '[data-testid="SideNav_AccountSwitcher_Button"]'
+    );
+    if (!accountSwitcher) return null;
+    for (const element of accountSwitcher.querySelectorAll('span')) {
+      const text = element.textContent.trim();
+      if (HANDLE_PATTERN.test(text)) return text;
+    }
+    return null;
+  }
+
+  function start(options = {}) {
+    const documentRef = options.document || document;
+    const Observer = options.MutationObserver || MutationObserver;
+    let queued = false;
+    let stopped = false;
+    const runScan = () => {
+      queued = false;
+      if (!stopped) scan(documentRef, options);
+    };
+    const observer = new Observer(() => {
+      if (queued || stopped) return;
+      queued = true;
+      queueMicrotask(runScan);
+    });
+
+    scan(documentRef, options);
+    observer.observe(documentRef.documentElement, { childList: true, subtree: true });
+    return {
+      observer,
+      stop() {
+        stopped = true;
+        observer.disconnect();
+      }
+    };
   }
 
   const api = {
@@ -138,7 +181,10 @@
     waitForElement,
     performNativeBlock,
     handleBlockClick,
-    scan
+    scan,
+    getCurrentHandle,
+    start
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else if (typeof document !== 'undefined') start();
 })();

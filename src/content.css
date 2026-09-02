@@ -1,0 +1,30 @@
+.x-inline-block-button {
+  all: unset;
+  box-sizing: border-box;
+  margin-left: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: rgb(244, 33, 46);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.x-inline-block-button:hover:not(:disabled),
+.x-inline-block-button:focus-visible:not(:disabled) {
+  background: rgba(244, 33, 46, 0.1);
+  text-decoration: underline;
+}
+
+.x-inline-block-button:focus-visible {
+  outline: 2px solid rgb(244, 33, 46);
+  outline-offset: 1px;
+}
+
+.x-inline-block-button:disabled {
+  cursor: default;
+  opacity: 0.65;
+}

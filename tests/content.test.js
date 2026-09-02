@@ -6,6 +6,7 @@ const {
   getHandle,
   injectBlockButton,
   scan,
+  start,
   performNativeBlock,
   handleBlockClick
 } = require('../src/content.js');
@@ -111,4 +112,47 @@ test('handleBlockClick restores the action after a safe failure', async () => {
   assert.equal(button.textContent, '拉黑');
   assert.equal(button.disabled, false);
   assert.match(button.title, /失败.*找不到拉黑菜单项/);
+});
+
+test('start scans initial and dynamically inserted posts', async () => {
+  const window = new Window({ url: 'https://x.com/home' });
+  const { document } = window;
+  document.body.innerHTML = `
+    <div data-testid="SideNav_AccountSwitcher_Button"><span>@me</span></div>
+    <article data-testid="tweet">
+      <div data-testid="User-Name"><span>Alice</span><span>@alice</span></div>
+    </article>`;
+
+  const controller = start({ document, MutationObserver: window.MutationObserver });
+  assert.equal(document.querySelectorAll('.x-inline-block-button').length, 1);
+
+  const container = document.createElement('div');
+  container.innerHTML = `
+    <article data-testid="tweet">
+      <div data-testid="User-Name"><span>Bob</span><span>@bob</span></div>
+    </article>`;
+  document.body.append(container);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(document.querySelectorAll('.x-inline-block-button').length, 2);
+
+  controller.stop();
+  const afterStop = document.createElement('article');
+  afterStop.dataset.testid = 'tweet';
+  afterStop.innerHTML = '<div data-testid="User-Name"><span>@carol</span></div>';
+  document.body.append(afterStop);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  assert.equal(afterStop.querySelector('.x-inline-block-button'), null);
+});
+
+test('start detects the signed-in handle and skips own posts', () => {
+  const window = new Window({ url: 'https://x.com/home' });
+  const { document } = window;
+  document.body.innerHTML = `
+    <div data-testid="SideNav_AccountSwitcher_Button"><span>@me</span></div>
+    <article data-testid="tweet">
+      <div data-testid="User-Name"><span>Me</span><span>@me</span></div>
+    </article>`;
+  const controller = start({ document, MutationObserver: window.MutationObserver });
+  assert.equal(document.querySelector('.x-inline-block-button'), null);
+  controller.stop();
 });
