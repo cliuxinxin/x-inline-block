@@ -2,7 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { Window } = require('happy-dom');
 
-const { getHandle, injectBlockButton, scan } = require('../src/content.js');
+const {
+  getHandle,
+  injectBlockButton,
+  scan,
+  performNativeBlock,
+  handleBlockClick
+} = require('../src/content.js');
 
 function makePage({ handle = '@alice', ad = false } = {}) {
   const window = new Window({ url: 'https://x.com/home' });
@@ -39,4 +45,70 @@ test('injectBlockButton skips promoted posts', () => {
 test('injectBlockButton skips the signed-in users own posts', () => {
   const { article } = makePage({ handle: '@me' });
   assert.equal(injectBlockButton(article, { currentHandle: '@ME' }), null);
+});
+
+test('performNativeBlock clicks the scoped menu item and native confirmation', async () => {
+  const { document, article } = makePage();
+  let confirmed = false;
+  article.querySelector('[data-testid="caret"]').addEventListener('click', () => {
+    const item = document.createElement('div');
+    item.dataset.testid = 'block';
+    item.textContent = '拉黑 @alice';
+    item.addEventListener('click', () => {
+      const confirm = document.createElement('button');
+      confirm.dataset.testid = 'confirmationSheetConfirm';
+      confirm.addEventListener('click', () => { confirmed = true; });
+      document.body.append(confirm);
+    });
+    document.body.append(item);
+  });
+
+  await performNativeBlock(article, '@alice', { document, timeout: 100 });
+  assert.equal(confirmed, true);
+});
+
+test('performNativeBlock rejects a block item for a different account', async () => {
+  const { document, article } = makePage();
+  let confirmed = false;
+  article.querySelector('[data-testid="caret"]').addEventListener('click', () => {
+    const item = document.createElement('div');
+    item.dataset.testid = 'block';
+    item.textContent = '拉黑 @mallory';
+    item.addEventListener('click', () => { confirmed = true; });
+    document.body.append(item);
+  });
+
+  await assert.rejects(
+    performNativeBlock(article, '@alice', { document, timeout: 30 }),
+    /找不到.*拉黑/
+  );
+  assert.equal(confirmed, false);
+});
+
+test('handleBlockClick exposes progress and success states', async () => {
+  const { article } = makePage();
+  const button = injectBlockButton(article, { currentHandle: '@me' });
+  const states = [];
+  const operation = async () => {
+    states.push([button.textContent, button.disabled]);
+  };
+
+  await handleBlockClick(button, article, { operation });
+
+  assert.deepEqual(states, [['处理中…', true]]);
+  assert.equal(button.textContent, '已拉黑');
+  assert.equal(button.disabled, true);
+});
+
+test('handleBlockClick restores the action after a safe failure', async () => {
+  const { article } = makePage();
+  const button = injectBlockButton(article, { currentHandle: '@me' });
+
+  await handleBlockClick(button, article, {
+    operation: async () => { throw new Error('找不到拉黑菜单项'); }
+  });
+
+  assert.equal(button.textContent, '拉黑');
+  assert.equal(button.disabled, false);
+  assert.match(button.title, /失败.*找不到拉黑菜单项/);
 });
