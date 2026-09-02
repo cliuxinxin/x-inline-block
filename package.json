@@ -1,0 +1,12 @@
+{
+  "name": "x-inline-block",
+  "version": "1.0.0",
+  "private": true,
+  "description": "在 X/Twitter 帖子作者名后添加直接拉黑按钮",
+  "scripts": {
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "happy-dom": "^18.0.1"
+  }
+}
